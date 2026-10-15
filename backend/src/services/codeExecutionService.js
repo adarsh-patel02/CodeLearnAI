@@ -1,12 +1,23 @@
 
 const { spawn } = require("child_process");
 
-
+// Batch execution is used by Run Code and the test-case evaluator.
+// Suppress input() prompts so they do not contaminate stdout comparisons
+// (for example, "Enter number: 120" versus expected output "120").
 const executePython = (code, input = "") => {
     return new Promise((resolve) => {
+        const wrappedCode = [
+            "import builtins as _codelearn_builtins",
+            "_codelearn_original_input = _codelearn_builtins.input",
+            "def _codelearn_input_without_prompt(prompt=''):",
+            "    return _codelearn_original_input()",
+            "_codelearn_builtins.input = _codelearn_input_without_prompt",
+            code
+        ].join("\n");
+
         const python = spawn(
             "python",
-            ["-c", code],
+            ["-c", wrappedCode],
             { windowsHide: true }
         );
 
@@ -14,6 +25,14 @@ const executePython = (code, input = "") => {
         let error = "";
         let settled = false;
         let timedOut = false;
+
+        const finish = (result) => {
+            if (settled) return;
+
+            settled = true;
+            clearTimeout(timeout);
+            resolve(result);
+        };
 
         const timeout = setTimeout(() => {
             timedOut = true;
@@ -24,14 +43,6 @@ const executePython = (code, input = "") => {
                 error: "Execution timed out after 10 seconds."
             });
         }, 10000);
-
-        const finish = (result) => {
-            if (settled) return;
-
-            settled = true;
-            clearTimeout(timeout);
-            resolve(result);
-        };
 
         python.stdout.on("data", (data) => {
             output += data.toString();
@@ -69,7 +80,8 @@ const executePython = (code, input = "") => {
     });
 };
 
-// New function — keeps Python alive for interactive input.
+// Interactive execution preserves normal input() prompts and supports
+// sending input while the Python process is running.
 const startInteractivePython = (code, callbacks = {}) => {
     const {
         onOutput = () => {},
@@ -77,7 +89,6 @@ const startInteractivePython = (code, callbacks = {}) => {
         onClose = () => {}
     } = callbacks;
 
-    // -u disables Python's stdout/stderr buffering.
     const python = spawn("python", ["-u", "-c", code], {
         stdio: ["pipe", "pipe", "pipe"],
         windowsHide: true
@@ -93,7 +104,6 @@ const startInteractivePython = (code, callbacks = {}) => {
         onClose(result);
     };
 
-    // Prevent a learner's program from running forever.
     timeout = setTimeout(() => {
         onError("Execution timed out.");
         python.kill();
@@ -130,7 +140,7 @@ const startInteractivePython = (code, callbacks = {}) => {
     return {
         sendInput(value) {
             if (!closed && python.stdin.writable) {
-                python.stdin.write(`${value}\n`);
+                python.stdin.write(`${value}\\n`);
             }
         },
 
