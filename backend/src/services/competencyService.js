@@ -1,7 +1,7 @@
 const path = require("path");
 const { spawn } = require("child_process");
 
-const predictCompetency = ({ learnerId, taskId }) => {
+const predictCompetency = ({ learnerId }) => {
     return new Promise((resolve, reject) => {
         const scriptPath = path.resolve(
             __dirname,
@@ -10,8 +10,7 @@ const predictCompetency = ({ learnerId, taskId }) => {
 
         const pythonProcess = spawn("python", [
             scriptPath,
-            String(learnerId),
-            String(taskId)
+            String(learnerId)
         ]);
 
         let stdout = "";
