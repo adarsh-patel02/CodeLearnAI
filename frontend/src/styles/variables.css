@@ -1,0 +1,158 @@
+
+:root {
+    /* =========================
+       BRAND COLORS
+    ========================= */
+
+    --primary-color: #4F46E5;
+    --primary-hover: #4338CA;
+    --primary-light: #818CF8;
+    --primary-subtle: rgba(79, 70, 229, 0.10);
+
+    --secondary-color: #0891B2;
+    --accent-color: #7C3AED;
+
+    --success-color: #16A34A;
+    --warning-color: #D97706;
+    --danger-color: #DC2626;
+
+    /* =========================
+       NAVIGATION
+    ========================= */
+
+    --sidebar-background: #172033;
+    --sidebar-surface: #202B42;
+    --sidebar-text: #CBD5E1;
+    --sidebar-text-active: #FFFFFF;
+    --sidebar-active: rgba(99, 102, 241, 0.20);
+
+    /* =========================
+       BACKGROUNDS & SURFACES
+    ========================= */
+
+    --background-color: #F5F7FB;
+    --surface-color: rgba(255, 255, 255, 0.82);
+    --surface-solid: #FFFFFF;
+    --surface-hover: #F1F5F9;
+
+    --glass-background: rgba(255, 255, 255, 0.68);
+    --glass-background-strong: rgba(255, 255, 255, 0.82);
+    --glass-border: rgba(255, 255, 255, 0.72);
+
+    /* =========================
+       TEXT
+    ========================= */
+
+    --text-primary: #202B3C;
+    --text-secondary: #64748B;
+    --text-muted: #94A3B8;
+    --text-white: #FFFFFF;
+
+    /* =========================
+       BORDERS
+    ========================= */
+
+    --border-color: #E2E8F0;
+    --border-subtle: rgba(148, 163, 184, 0.18);
+    --border-focus: rgba(79, 70, 229, 0.55);
+
+    /* =========================
+       BORDER RADIUS
+    ========================= */
+
+    --border-radius-sm: 8px;
+    --border-radius: 14px;
+    --border-radius-lg: 20px;
+    --border-radius-xl: 28px;
+    --border-radius-pill: 999px;
+
+    /* =========================
+       STANDARD SHADOWS
+    ========================= */
+
+    --shadow-sm:
+        0 2px 8px rgba(15, 23, 42, 0.04);
+
+    --shadow:
+        0 8px 24px rgba(15, 23, 42, 0.06);
+
+    --shadow-lg:
+        0 18px 45px rgba(15, 23, 42, 0.10);
+
+    --shadow-primary:
+        0 10px 26px rgba(79, 70, 229, 0.22);
+
+    --shadow-glow:
+        0 0 32px rgba(99, 102, 241, 0.16);
+
+    /* =========================
+       NEUMORPHISM
+    ========================= */
+
+    --neo-shadow:
+        7px 7px 16px rgba(148, 163, 184, 0.18),
+        -7px -7px 16px rgba(255, 255, 255, 0.85);
+
+    --neo-shadow-hover:
+        4px 4px 10px rgba(148, 163, 184, 0.20),
+        -4px -4px 10px rgba(255, 255, 255, 0.90);
+
+    --neo-shadow-inset:
+        inset 3px 3px 7px rgba(148, 163, 184, 0.16),
+        inset -3px -3px 7px rgba(255, 255, 255, 0.90);
+
+    /* =========================
+       GLASSMORPHISM
+    ========================= */
+
+    --glass-blur: blur(18px);
+    --glass-saturate: saturate(150%);
+
+    /* =========================
+       TRANSITIONS
+    ========================= */
+
+    --transition-fast: 0.18s ease;
+    --transition: 0.3s ease;
+    --transition-slow: 0.5s ease;
+
+    /* =========================
+       GRADIENTS
+    ========================= */
+
+    --gradient-primary:
+        linear-gradient(
+            135deg,
+            #4F46E5 0%,
+            #6366F1 55%,
+            #7C3AED 100%
+        );
+
+    --gradient-soft:
+        linear-gradient(
+            135deg,
+            rgba(79, 70, 229, 0.10),
+            rgba(8, 145, 178, 0.06)
+        );
+
+    --gradient-hero:
+        linear-gradient(
+            135deg,
+            #172033 0%,
+            #293B67 55%,
+            #4F46E5 100%
+        );
+
+    --gradient-background:
+        radial-gradient(
+            circle at 8% 8%,
+            rgba(99, 102, 241, 0.09),
+            transparent 32%
+        ),
+        radial-gradient(
+            circle at 92% 18%,
+            rgba(8, 145, 178, 0.07),
+            transparent 30%
+        ),
+        #F5F7FB;
+}
