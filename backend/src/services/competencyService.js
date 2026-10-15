@@ -5,7 +5,7 @@ const predictCompetency = ({ learnerId }) => {
     return new Promise((resolve, reject) => {
         const scriptPath = path.resolve(
             __dirname,
-            "../../ml/predict_competency.py"
+            "../../ml/predict_overall_competency.py"
         );
 
         const pythonProcess = spawn("python", [
@@ -30,17 +30,29 @@ const predictCompetency = ({ learnerId }) => {
 
         pythonProcess.on("close", (code) => {
             if (code !== 0) {
-                reject(
-                    new Error(
-                        stderr.trim() ||
-                            `Competency prediction process exited with code ${code}`
-                    )
-                );
+                try {
+                    const payload = JSON.parse(stdout);
+                    reject(new Error(payload.error || "Competency prediction failed"));
+                } catch {
+                    reject(
+                        new Error(
+                            stderr.trim() ||
+                                `Competency prediction process exited with code ${code}`
+                        )
+                    );
+                }
                 return;
             }
 
             try {
-                resolve(JSON.parse(stdout));
+                const result = JSON.parse(stdout);
+
+                if (result.error) {
+                    reject(new Error(result.error));
+                    return;
+                }
+
+                resolve(result);
             } catch (error) {
                 reject(
                     new Error(
