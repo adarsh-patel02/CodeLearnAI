@@ -12,6 +12,7 @@ const connectDB = require("./config/db");
 const codeRoutes = require("./routes/codeRoutes");
 const aiRoutes = require("./routes/aiRoutes");
 const aiInteractionRoutes = require("./routes/aiInteractionRoutes");
+const competencyRoutes = require("./routes/competencyRoutes");
 
 const jwt = require("jsonwebtoken");
 
@@ -44,6 +45,7 @@ app.use("/api/code", codeRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/ai-interactions", aiInteractionRoutes);
+app.use("/api/competency", competencyRoutes);
 
 app.get("/", (req, res) => {
     res.json({
