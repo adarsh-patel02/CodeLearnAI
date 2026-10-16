@@ -19,7 +19,8 @@ const isFunctionStyleTask = (task) => {
     // is explicitly asked to implement a function. Infer FUNCTION only when
     // the starter code is function-shaped and there is no obvious stdin API.
     const hasStdin = /\binput\s*\(|sys\.stdin|sys\.argv/.test(starterCode);
-    const asksForFunction = /\bwrite\s+(a|an)\s+function\b|\bfunction\s+that\b|\breturn\b/.test(description);
+    const asksForFunction =
+        /\bwrite\s+(a|an)\s+function\b|\bfunction\s+that\b/.test(description);
 
     return Boolean(inferredName && !hasStdin && asksForFunction);
 };
