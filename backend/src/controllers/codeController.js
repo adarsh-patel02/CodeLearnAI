@@ -3,10 +3,6 @@ const mongoose = require("mongoose");
 const { executePython } = require("../services/codeExecutionService");
 const CodeExecution = require("../models/CodeExecution");
 const Task = require("../models/Task");
-const {
-    resolveEvaluation, buildFunctionEvaluationWrapper, prepareStdin,
-    normalizeTextOutput, parseFunctionEvaluationResult
-} = require("../services/taskEvaluationService");
 
 // Interactive Run Code: execute code and record an attempt.
 const runCode = async (req, res) => {
@@ -164,33 +160,24 @@ const submitSolution = async (req, res) => {
         let testsPassed = 0;
         let hadRuntimeError = false;
 
-        const evaluation = resolveEvaluation(task);
-        if (evaluation.evaluationType === "INVALID") {
-            return res.status(400).json({
-                success: false,
-                message: "Function task needs a valid function name. Please contact the administrator."
-            });
-        }
+        const normalizeOutput = (value) =>
+            String(value ?? "").replace(/\r\n/g, "\n").trim();
 
         for (let i = 0; i < testCases.length; i++) {
             const testCase = testCases[i];
-            const isFunction = evaluation.evaluationType === "FUNCTION";
-            const executableCode = isFunction
-                ? buildFunctionEvaluationWrapper(
-                    code, evaluation.functionName,
-                    testCase.input, testCase.expectedOutput
-                )
-                : code;
-            const execution = await executePython(
-                executableCode, isFunction ? "" : prepareStdin(testCase.input)
-            );
-            const functionResult = isFunction && execution.success
-                ? parseFunctionEvaluationResult(execution.output)
-                : null;
-            const passed = execution.success && (isFunction
-                ? functionResult?.passed === true
-                : normalizeTextOutput(execution.output) ===
-                    normalizeTextOutput(testCase.expectedOutput));
+
+            // Provide stdin input to this individual test execution.
+            let testInput = testCase.input ?? "";
+            if (testInput && !testInput.endsWith("\n")) {
+                testInput += "\n";
+            }
+
+            const execution = await executePython(code, testInput);
+
+            const passed =
+                execution.success &&
+                normalizeOutput(execution.output) ===
+                    normalizeOutput(testCase.expectedOutput);
 
             if (passed) {
                 testsPassed++;

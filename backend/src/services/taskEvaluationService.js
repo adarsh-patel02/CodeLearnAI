@@ -69,7 +69,7 @@ import inspect as __codelearn_inspect
 import io as __codelearn_io
 import json as __codelearn_json
 
-__codelearn_namespace = {"__name__": "__codelearn_submission__"}
+__codelearn_namespace = {}
 __codelearn_stdout = __codelearn_io.StringIO()
 
 with __codelearn_contextlib.redirect_stdout(__codelearn_stdout):
@@ -88,19 +88,13 @@ __codelearn_function = __codelearn_namespace.get(__codelearn_function_name)
 if not callable(__codelearn_function):
     raise TypeError("Learner function was not defined: " + __codelearn_function_name)
 
-__codelearn_raw_input = __codelearn_json.loads(${JSON.stringify(serializedInput)})
-__codelearn_raw_expected = __codelearn_json.loads(${JSON.stringify(serializedExpected)})
+__codelearn_raw_input = __codelearn_json.loads(${serializedInput})
+__codelearn_raw_expected = __codelearn_json.loads(${serializedExpected})
 
-def __codelearn_parse(value):
-    try:
-        return __codelearn_json.loads(value)
-    except Exception:
-        try:
-            return __codelearn_ast.literal_eval(value)
-        except Exception:
-            return value
-
-__codelearn_parsed_input = __codelearn_parse(__codelearn_raw_input)
+try:
+    __codelearn_parsed_input = __codelearn_ast.literal_eval(__codelearn_raw_input)
+except Exception:
+    __codelearn_parsed_input = __codelearn_raw_input
 
 __codelearn_parameters = [
     p for p in __codelearn_inspect.signature(__codelearn_function).parameters.values()
@@ -110,13 +104,7 @@ __codelearn_parameters = [
     )
 ]
 
-__codelearn_kwargs = {}
-if isinstance(__codelearn_parsed_input, dict) and "args" in __codelearn_parsed_input:
-    __codelearn_args = __codelearn_parsed_input["args"]
-    __codelearn_kwargs = __codelearn_parsed_input.get("kwargs", {})
-elif not __codelearn_parameters and not __codelearn_raw_input.strip():
-    __codelearn_args = []
-elif len(__codelearn_parameters) == 1:
+if len(__codelearn_parameters) == 1:
     __codelearn_args = [__codelearn_parsed_input]
 elif isinstance(__codelearn_parsed_input, (tuple, list)):
     __codelearn_args = list(__codelearn_parsed_input)
@@ -124,9 +112,12 @@ else:
     __codelearn_args = [__codelearn_parsed_input]
 
 with __codelearn_contextlib.redirect_stdout(__codelearn_stdout):
-    __codelearn_actual = __codelearn_function(*__codelearn_args, **__codelearn_kwargs)
+    __codelearn_actual = __codelearn_function(*__codelearn_args)
 
-__codelearn_expected = __codelearn_parse(__codelearn_raw_expected)
+try:
+    __codelearn_expected = __codelearn_ast.literal_eval(__codelearn_raw_expected)
+except Exception:
+    __codelearn_expected = __codelearn_raw_expected.strip()
 
 __codelearn_passed = __codelearn_actual == __codelearn_expected
 

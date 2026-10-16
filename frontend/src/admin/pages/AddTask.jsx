@@ -472,11 +472,6 @@ const AddTask = () => {
                         <div className="admin-page-header">
                             <h2>Test Cases</h2>
                             <p>
-                                {formData.evaluationType === "FUNCTION"
-                                    ? 'Use JSON inputs: [2,3] for two parameters, [1,2,3] for one list parameter. Use {"args":[],"kwargs":{}} for explicit arguments. Expected output is the returned value in JSON format.'
-                                    : 'Enter the exact text read by the program. Put each separate input() value on a new line. Expected output must match printed output; omit input prompts.'}
-                            </p>
-                            <p>
                                 Define the inputs and expected outputs
                                 used to evaluate submitted programs.
                             </p>
