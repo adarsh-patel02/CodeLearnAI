@@ -2,6 +2,62 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import "../styles/learner-dashboard.css";
 
+const UiIcon = ({ name, size = 18 }) => {
+    const common = {
+        width: size,
+        height: size,
+        viewBox: "0 0 24 24",
+        fill: "none",
+        stroke: "currentColor",
+        strokeWidth: 1.8,
+        strokeLinecap: "round",
+        strokeLinejoin: "round",
+        "aria-hidden": true
+    };
+
+    if (name === "dashboard") {
+        return <svg {...common}><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></svg>;
+    }
+
+    if (name === "tasks") {
+        return <svg {...common}><rect x="4" y="3" width="16" height="18" rx="2" /><path d="M8 8h8M8 12h8M8 16h5" /></svg>;
+    }
+
+    if (name === "ai") {
+        return <svg {...common}><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8" /><circle cx="12" cy="12" r="3.5" /></svg>;
+    }
+
+    if (name === "code") {
+        return <svg {...common}><path d="m9 7-5 5 5 5M15 7l5 5-5 5M13 4l-2 16" /></svg>;
+    }
+
+    if (name === "logout") {
+        return <svg {...common}><path d="M10 5H5v14h5M14 8l4 4-4 4M9 12h9" /></svg>;
+    }
+
+    if (name === "arrow") {
+        return <svg {...common}><path d="M5 12h13M13 7l5 5-5 5" /></svg>;
+    }
+
+    if (name === "menu") {
+        return <svg {...common}><path d="M4 7h16M4 12h16M4 17h16" /></svg>;
+    }
+
+    if (name === "sparkle") {
+        return <svg {...common}><path d="m12 3 1.7 5.3L19 10l-5.3 1.7L12 17l-1.7-5.3L5 10l5.3-1.7L12 3Z" /><path d="m19 15 .8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15Z" /></svg>;
+    }
+
+    if (name === "check") {
+        return <svg {...common}><circle cx="12" cy="12" r="8.5" /><path d="m8 12 2.5 2.5L16 9" /></svg>;
+    }
+
+    if (name === "independent") {
+        return <svg {...common}><path d="M7 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h2M17 4h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-2M9 8h6M9 12h6M9 16h4" /></svg>;
+    }
+
+    return null;
+};
+
 const LearnerDashboard = () => {
     const navigate = useNavigate();
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -55,11 +111,7 @@ const LearnerDashboard = () => {
     return (
         <div className="learner-dashboard">
             {sidebarOpen && (
-                <button
-                    className="learner-sidebar-overlay"
-                    aria-label="Close navigation"
-                    onClick={() => setSidebarOpen(false)}
-                />
+                <button className="learner-sidebar-overlay" aria-label="Close navigation" onClick={() => setSidebarOpen(false)} />
             )}
 
             <aside className={`learner-sidebar ${sidebarOpen ? "sidebar-open" : ""}`}>
@@ -75,16 +127,16 @@ const LearnerDashboard = () => {
 
                 <nav className="learner-nav">
                     <button className="learner-nav-item active">
-                        <span>DB</span> Dashboard
+                        <span><UiIcon name="dashboard" /></span> Dashboard
                     </button>
                     <button className="learner-nav-item" onClick={() => navigate("/learning/tasks")}>
-                        <span>TK</span> Learning Tasks
+                        <span><UiIcon name="tasks" /></span> Learning Tasks
                     </button>
                     <button className="learner-nav-item" onClick={() => navigate("/learning/tasks")}>
-                        <span>AI</span> AI-Assisted Coding
+                        <span><UiIcon name="ai" /></span> AI-Assisted Coding
                     </button>
                     <button className="learner-nav-item" onClick={() => navigate("/learning/tasks")}>
-                        <span>NA</span> No-AI Assessments
+                        <span><UiIcon name="code" /></span> No-AI Assessments
                     </button>
                 </nav>
 
@@ -97,27 +149,18 @@ const LearnerDashboard = () => {
                         </div>
                     </div>
                     <button className="learner-nav-item learner-logout" onClick={handleLogout}>
-                        <span>OUT</span> Log out
+                        <span><UiIcon name="logout" /></span> Log out
                     </button>
                 </div>
             </aside>
 
             <main className="learner-main">
                 <header className="learner-topbar">
-                    <button
-                        className="learner-menu-toggle"
-                        onClick={() => setSidebarOpen(!sidebarOpen)}
-                        aria-label="Toggle navigation"
-                    >
-                        MENU
+                    <button className="learner-menu-toggle" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="Toggle navigation">
+                        <UiIcon name="menu" size={23} />
                     </button>
-                    <div className="learner-breadcrumb">
-                        Workspace <span>/</span> Dashboard
-                    </div>
-                    <div className="learner-topbar-status">
-                        <span className="learner-status-dot" />
-                        Learning workspace
-                    </div>
+                    <div className="learner-breadcrumb">Workspace <span>/</span> Dashboard</div>
+                    <div className="learner-topbar-status"><span className="learner-status-dot" /> Learning workspace</div>
                 </header>
 
                 <div className="learner-dashboard-content">
@@ -125,12 +168,9 @@ const LearnerDashboard = () => {
                         <div>
                             <span className="learner-eyebrow">YOUR LEARNING SPACE</span>
                             <h1>Welcome back, {learnerName}!</h1>
-                            <p>
-                                Build your programming skills through practice,
-                                AI assistance, and independent assessments.
-                            </p>
+                            <p>Build your programming skills through practice, AI assistance, and independent assessments.</p>
                             <button className="learner-primary-button" onClick={() => navigate("/learning/tasks")}>
-                                Explore Programming Tasks <span>-&gt;</span>
+                                Explore Programming Tasks <UiIcon name="arrow" size={15} />
                             </button>
                         </div>
                         <div className="learner-welcome-art" aria-hidden="true">
@@ -139,7 +179,7 @@ const LearnerDashboard = () => {
                                 <span>CODE</span>
                                 <span>OK</span>
                             </div>
-                            <div className="learner-art-core">{`{ }`}</div>
+                            <div className="learner-art-core"><UiIcon name="code" size={32} /></div>
                         </div>
                     </section>
 
@@ -172,30 +212,22 @@ const LearnerDashboard = () => {
                                         <span>/ 100</span>
                                     </div>
                                 </div>
-
                                 <div className="competency-summary">
                                     <span className="competency-label">CURRENT LEVEL</span>
                                     <h3>{competencyLevel}</h3>
-                                    <p>
-                                        Based on {competency.tasksEvaluated || 0} evaluated task{competency.tasksEvaluated === 1 ? "" : "s"}.
-                                    </p>
+                                    <p>Based on {competency.tasksEvaluated || 0} evaluated task{competency.tasksEvaluated === 1 ? "" : "s"}.</p>
                                 </div>
-
                                 <div className="competency-task-breakdown">
                                     <span className="competency-label">TASK PREDICTIONS</span>
-                                    {competency.taskPredictions?.length ? (
-                                        competency.taskPredictions.map((task, index) => (
-                                            <div className="competency-task-row" key={task.taskId}>
-                                                <span>Task {index + 1}</span>
-                                                <div className="competency-task-bar">
-                                                    <span style={{ width: `${Math.max(0, Math.min(100, task.score))}%` }} />
-                                                </div>
-                                                <strong>{Number(task.score).toFixed(2)}</strong>
+                                    {competency.taskPredictions?.length ? competency.taskPredictions.map((task, index) => (
+                                        <div className="competency-task-row" key={task.taskId}>
+                                            <span>Task {index + 1}</span>
+                                            <div className="competency-task-bar">
+                                                <span style={{ width: `${Math.max(0, Math.min(100, task.score))}%` }} />
                                             </div>
-                                        ))
-                                    ) : (
-                                        <span className="competency-empty">No task predictions yet.</span>
-                                    )}
+                                            <strong>{Number(task.score).toFixed(2)}</strong>
+                                        </div>
+                                    )) : <span className="competency-empty">No task predictions yet.</span>}
                                 </div>
                             </div>
                         )}
@@ -212,28 +244,20 @@ const LearnerDashboard = () => {
 
                         <div className="learner-stats-grid">
                             <article className="learner-stat-card">
-                                <div className="learner-stat-icon purple">TASK</div>
-                                <span>Tasks Completed</span>
-                                <strong>--</strong>
-                                <small>Awaiting task history</small>
+                                <div className="learner-stat-icon purple"><UiIcon name="tasks" /></div>
+                                <span>Tasks Completed</span><strong>—</strong><small>Awaiting task history</small>
                             </article>
                             <article className="learner-stat-card">
-                                <div className="learner-stat-icon blue">AI</div>
-                                <span>Practice Sessions</span>
-                                <strong>--</strong>
-                                <small>Awaiting session data</small>
+                                <div className="learner-stat-icon blue"><UiIcon name="ai" /></div>
+                                <span>Practice Sessions</span><strong>—</strong><small>Awaiting session data</small>
                             </article>
                             <article className="learner-stat-card">
-                                <div className="learner-stat-icon green">OK</div>
-                                <span>Assessment Score</span>
-                                <strong>--</strong>
-                                <small>Awaiting assessment results</small>
+                                <div className="learner-stat-icon green"><UiIcon name="check" /></div>
+                                <span>Assessment Score</span><strong>—</strong><small>Awaiting assessment results</small>
                             </article>
                             <article className="learner-stat-card">
-                                <div className="learner-stat-icon orange">IND</div>
-                                <span>Independent Progress</span>
-                                <strong>--</strong>
-                                <small>Awaiting No-AI assessments</small>
+                                <div className="learner-stat-icon orange"><UiIcon name="independent" /></div>
+                                <span>Independent Progress</span><strong>—</strong><small>Awaiting No-AI assessments</small>
                             </article>
                         </div>
                     </section>
@@ -245,39 +269,25 @@ const LearnerDashboard = () => {
                                 <p>Practice with AI, then challenge yourself independently.</p>
                             </div>
                         </div>
-
                         <div className="learner-modes-grid">
                             <article className="learner-mode-card ai-mode">
-                                <div className="learner-mode-icon">AI</div>
+                                <div className="learner-mode-icon"><UiIcon name="sparkle" /></div>
                                 <span className="learner-mode-label">LEARN WITH GUIDANCE</span>
                                 <h3>AI-Assisted Learning</h3>
-                                <p>
-                                    Work on programming tasks, run code, and use AI assistance
-                                    to understand concepts and debug problems.
-                                </p>
-                                <button onClick={() => navigate("/learning/tasks")}>
-                                    Browse learning tasks -&gt;
-                                </button>
+                                <p>Work on programming tasks, run code, and use AI assistance to understand concepts and debug problems.</p>
+                                <button onClick={() => navigate("/learning/tasks")}>Browse learning tasks <UiIcon name="arrow" size={13} /></button>
                             </article>
-
                             <article className="learner-mode-card independent-mode">
-                                <div className="learner-mode-icon">CODE</div>
+                                <div className="learner-mode-icon"><UiIcon name="code" /></div>
                                 <span className="learner-mode-label">TEST YOUR UNDERSTANDING</span>
                                 <h3>Independent Assessment</h3>
-                                <p>
-                                    Solve a matched programming problem without AI assistance
-                                    to evaluate your independent understanding.
-                                </p>
-                                <button onClick={() => navigate("/learning/tasks")}>
-                                    Choose a task first -&gt;
-                                </button>
+                                <p>Solve a matched programming problem without AI assistance to evaluate your independent understanding.</p>
+                                <button onClick={() => navigate("/learning/tasks")}>Choose a task first <UiIcon name="arrow" size={13} /></button>
                             </article>
                         </div>
                     </section>
 
-                    <footer className="learner-footer">
-                        CodeLearn AI <span>-</span> Learn, practice, understand.
-                    </footer>
+                    <footer className="learner-footer">CodeLearn AI <span>·</span> Learn, practice, understand.</footer>
                 </div>
             </main>
         </div>
