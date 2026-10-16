@@ -140,7 +140,7 @@ const startInteractivePython = (code, callbacks = {}) => {
     return {
         sendInput(value) {
             if (!closed && python.stdin.writable) {
-                python.stdin.write(`${value}\\n`);
+                python.stdin.write(`${value}\n`);
             }
         },
 

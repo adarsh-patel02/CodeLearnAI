@@ -21,7 +21,9 @@ const NoAIWorkspace = () => {
     const [output, setOutput] = useState("");
     const [consoleInput, setConsoleInput] = useState("");
     const [isRunning, setIsRunning] = useState(false);
-    const [waitingForInput, setWaitingForInput] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submissionResult, setSubmissionResult] = useState(null);
+    const [submissionError, setSubmissionError] = useState("");
 
     useEffect(() => {
         const fetchTask = async () => {
@@ -104,15 +106,10 @@ const NoAIWorkspace = () => {
 
         socket.on("python:started", () => {
             setIsRunning(true);
-            setWaitingForInput(true);
         });
 
-        socket.on("python:output", ({ type, data }) => {
+        socket.on("python:output", ({ data }) => {
             setOutput((previous) => previous + data);
-
-            if (type === "stdout") {
-                setWaitingForInput(true);
-            }
         });
 
         socket.on("python:error", (message) => {
@@ -123,7 +120,6 @@ const NoAIWorkspace = () => {
 
         socket.on("python:finished", (result) => {
             setIsRunning(false);
-            setWaitingForInput(false);
             setOutput((previous) =>
                 `${previous}\n${result.success
                     ? "\nDone."
@@ -145,7 +141,7 @@ const NoAIWorkspace = () => {
     }, [output]);
 
     const handleRunCode = () => {
-        if (!task || isRunning) return;
+        if (!task || isRunning || isSubmitting) return;
 
         const socket = socketRef.current;
 
@@ -156,7 +152,6 @@ const NoAIWorkspace = () => {
 
         setOutput("");
         setConsoleInput("");
-        setWaitingForInput(false);
         setIsRunning(true);
 
         socket.emit("python:start", {
@@ -170,7 +165,7 @@ const NoAIWorkspace = () => {
     const handleConsoleSubmit = (event) => {
         event.preventDefault();
 
-        if (!isRunning || !waitingForInput) return;
+        if (!isRunning) return;
 
         const socket = socketRef.current;
         if (!socket?.connected) return;
@@ -180,14 +175,54 @@ const NoAIWorkspace = () => {
         socket.emit("python:input", consoleInput);
 
         setConsoleInput("");
-        setWaitingForInput(false);
         inputRef.current?.focus();
     };
+
+    const handleSubmitSolution = async () => {
+        if (!task || isRunning || isSubmitting) return;
+
+        const token = localStorage.getItem("learnerToken");
+
+        if (!token) {
+            navigate("/login/learner");
+            return;
+        }
+
+        setIsSubmitting(true);
+        setSubmissionResult(null);
+        setSubmissionError("");
+
+        try {
+            const response = await axios.post(
+                "http://localhost:5000/api/code/submit",
+                {
+                    code,
+                    taskId: task._id,
+                    language: (task.language || "python").toLowerCase(),
+                    assessmentMode: "NO_AI"
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+
+            setSubmissionResult(response.data);
+        } catch (error) {
+            setSubmissionError(
+                error.response?.data?.message ||
+                "Unable to evaluate your solution. Please try again."
+            );
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
 
     const handleStopCode = () => {
         socketRef.current?.emit("python:stop");
         setIsRunning(false);
-        setWaitingForInput(false);
     };
 
     if (loading) {
@@ -263,6 +298,53 @@ const NoAIWorkspace = () => {
                         }}
                     />
 
+                    {(submissionResult || submissionError) && (
+                        <div
+                            className="submission-result"
+                            aria-live="polite"
+                            style={{
+                                marginTop: "16px",
+                                padding: "16px",
+                                border: "1px solid #ccc",
+                                borderRadius: "8px"
+                            }}
+                        >
+                            <h3>Submission Results</h3>
+
+                            {submissionError && (
+                                <p role="alert">{submissionError}</p>
+                            )}
+
+                            {submissionResult && (
+                                <>
+                                    <p>
+                                        Tests passed:{" "}
+                                        {submissionResult.testsPassed}/
+                                        {submissionResult.totalTests}
+                                    </p>
+
+                                    <p>
+                                        Correctness score:{" "}
+                                        {submissionResult.correctnessScore}%
+                                    </p>
+
+                                    <p>
+                                        Evaluation time:{" "}
+                                        {submissionResult.executionTimeMs} ms
+                                    </p>
+
+                                    <ul>
+                                        {submissionResult.results?.map((result) => (
+                                            <li key={result.testCase}>
+                                                Test {result.testCase}:{" "}
+                                                {result.passed ? "Passed" : result.status === "RUNTIME_ERROR" ? "Runtime error" : "Failed (output mismatch)"}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </>
+                            )}
+                        </div>
+                    )}
                     <div className="no-ai-console">
                         <div className="no-ai-console-header">
                             <h4>Program Console</h4>
@@ -271,9 +353,17 @@ const NoAIWorkspace = () => {
                                 <button
                                     type="button"
                                     onClick={handleRunCode}
-                                    disabled={isRunning}
+                                    disabled={isRunning || isSubmitting}
                                 >
                                     Run Code
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={handleSubmitSolution}
+                                    disabled={isRunning || isSubmitting || !code.trim()}
+                                >
+                                    {isSubmitting ? "Evaluating..." : "Submit Solution"}
                                 </button>
 
                                 <button
@@ -304,7 +394,7 @@ const NoAIWorkspace = () => {
                                 onChange={(event) =>
                                     setConsoleInput(event.target.value)
                                 }
-                                disabled={!isRunning || !waitingForInput}
+                                disabled={!isRunning}
                                 placeholder={
                                     isRunning
                                         ? "Enter input and press Enter"
@@ -314,7 +404,7 @@ const NoAIWorkspace = () => {
                             />
                             <button
                                 type="submit"
-                                disabled={!isRunning || !waitingForInput}
+                                disabled={!isRunning}
                             >
                                 Enter
                             </button>
