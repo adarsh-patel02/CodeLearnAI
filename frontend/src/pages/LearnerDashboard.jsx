@@ -9,10 +9,7 @@ const LearnerDashboard = () => {
     const [competencyLoading, setCompetencyLoading] = useState(true);
     const [competencyError, setCompetencyError] = useState("");
 
-    const learner = JSON.parse(
-        localStorage.getItem("learner") || "null"
-    );
-
+    const learner = JSON.parse(localStorage.getItem("learner") || "null");
     const learnerName = learner?.name?.trim().split(/\s+/)[0] || "Learner";
 
     useEffect(() => {
@@ -25,17 +22,13 @@ const LearnerDashboard = () => {
         }
 
         fetch("/api/competency/me", {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
+            headers: { Authorization: `Bearer ${token}` }
         })
             .then(async (response) => {
                 const data = await response.json();
-
                 if (!response.ok || !data.success) {
                     throw new Error(data.message || "Unable to load competency.");
                 }
-
                 return data;
             })
             .then((data) => {
@@ -82,47 +75,29 @@ const LearnerDashboard = () => {
 
                 <nav className="learner-nav">
                     <button className="learner-nav-item active">
-                        <span>▦</span> Dashboard
+                        <span>DB</span> Dashboard
                     </button>
-
-                    <button
-                        className="learner-nav-item"
-                        onClick={() => navigate("/learning/tasks")}
-                    >
-                        <span>▤</span> Learning Tasks
+                    <button className="learner-nav-item" onClick={() => navigate("/learning/tasks")}>
+                        <span>TK</span> Learning Tasks
                     </button>
-
-                    <button
-                        className="learner-nav-item"
-                        onClick={() => navigate("/learning/tasks")}
-                    >
-                        <span>⌘</span> AI-Assisted Coding
+                    <button className="learner-nav-item" onClick={() => navigate("/learning/tasks")}>
+                        <span>AI</span> AI-Assisted Coding
                     </button>
-
-                    <button
-                        className="learner-nav-item"
-                        onClick={() => navigate("/learning/tasks")}
-                    >
-                        <span>〈/〉</span> No-AI Assessments
+                    <button className="learner-nav-item" onClick={() => navigate("/learning/tasks")}>
+                        <span>NA</span> No-AI Assessments
                     </button>
                 </nav>
 
                 <div className="learner-sidebar-bottom">
                     <div className="learner-profile">
-                        <div className="learner-avatar">
-                            {learnerName.charAt(0).toUpperCase()}
-                        </div>
+                        <div className="learner-avatar">{learnerName.charAt(0).toUpperCase()}</div>
                         <div className="learner-profile-info">
                             <strong>{learnerName}</strong>
                             <span>Programming Learner</span>
                         </div>
                     </div>
-
-                    <button
-                        className="learner-nav-item learner-logout"
-                        onClick={handleLogout}
-                    >
-                        <span>↪</span> Log out
+                    <button className="learner-nav-item learner-logout" onClick={handleLogout}>
+                        <span>OUT</span> Log out
                     </button>
                 </div>
             </aside>
@@ -134,13 +109,11 @@ const LearnerDashboard = () => {
                         onClick={() => setSidebarOpen(!sidebarOpen)}
                         aria-label="Toggle navigation"
                     >
-                        ☰
+                        MENU
                     </button>
-
                     <div className="learner-breadcrumb">
                         Workspace <span>/</span> Dashboard
                     </div>
-
                     <div className="learner-topbar-status">
                         <span className="learner-status-dot" />
                         Learning workspace
@@ -150,31 +123,23 @@ const LearnerDashboard = () => {
                 <div className="learner-dashboard-content">
                     <section className="learner-welcome">
                         <div>
-                            <span className="learner-eyebrow">
-                                YOUR LEARNING SPACE
-                            </span>
+                            <span className="learner-eyebrow">YOUR LEARNING SPACE</span>
                             <h1>Welcome back, {learnerName}!</h1>
                             <p>
-                                Build your programming skills through
-                                practice, AI assistance, and independent
-                                assessments.
+                                Build your programming skills through practice,
+                                AI assistance, and independent assessments.
                             </p>
-
-                            <button
-                                className="learner-primary-button"
-                                onClick={() => navigate("/learning/tasks")}
-                            >
-                                Explore Programming Tasks <span>→</span>
+                            <button className="learner-primary-button" onClick={() => navigate("/learning/tasks")}>
+                                Explore Programming Tasks <span>-&gt;</span>
                             </button>
                         </div>
-
                         <div className="learner-welcome-art" aria-hidden="true">
                             <div className="learner-art-orbit">
                                 <span>AI</span>
-                                <span>{"</>"}</span>
-                                <span>✓</span>
+                                <span>CODE</span>
+                                <span>OK</span>
                             </div>
-                            <div className="learner-art-core">{"{ }"}</div>
+                            <div className="learner-art-core">{`{ }`}</div>
                         </div>
                     </section>
 
@@ -182,9 +147,7 @@ const LearnerDashboard = () => {
                         <div className="learner-section-heading">
                             <div>
                                 <h2>Programming competency</h2>
-                                <p>
-                                    Your current competency estimate from AI-assisted coding evidence.
-                                </p>
+                                <p>Your current competency estimate from AI-assisted coding evidence.</p>
                             </div>
                             <span className="learner-data-badge competency-live-badge">
                                 {competencyLoading ? "Calculating..." : "Live ML result"}
@@ -203,10 +166,7 @@ const LearnerDashboard = () => {
                             </div>
                         ) : (
                             <div className="learner-competency-card">
-                                <div
-                                    className="competency-score-ring"
-                                    style={{ "--competency-angle": `${scoreAngle}deg` }}
-                                >
+                                <div className="competency-score-ring" style={{ "--competency-angle": `${scoreAngle}deg` }}>
                                     <div className="competency-score-center">
                                         <strong>{competencyScore.toFixed(2)}</strong>
                                         <span>/ 100</span>
@@ -245,41 +205,34 @@ const LearnerDashboard = () => {
                         <div className="learner-section-heading">
                             <div>
                                 <h2>Your learning overview</h2>
-                                <p>
-                                    Your activity and progress will appear here.
-                                </p>
+                                <p>Your activity and progress will appear here.</p>
                             </div>
-                            <span className="learner-data-badge">
-                                Live data integration pending
-                            </span>
+                            <span className="learner-data-badge">Live data integration pending</span>
                         </div>
 
                         <div className="learner-stats-grid">
                             <article className="learner-stat-card">
-                                <div className="learner-stat-icon purple">▤</div>
+                                <div className="learner-stat-icon purple">TASK</div>
                                 <span>Tasks Completed</span>
-                                <strong>—</strong>
+                                <strong>--</strong>
                                 <small>Awaiting task history</small>
                             </article>
-
                             <article className="learner-stat-card">
-                                <div className="learner-stat-icon blue">⌘</div>
+                                <div className="learner-stat-icon blue">AI</div>
                                 <span>Practice Sessions</span>
-                                <strong>—</strong>
+                                <strong>--</strong>
                                 <small>Awaiting session data</small>
                             </article>
-
                             <article className="learner-stat-card">
-                                <div className="learner-stat-icon green">✓</div>
+                                <div className="learner-stat-icon green">OK</div>
                                 <span>Assessment Score</span>
-                                <strong>—</strong>
+                                <strong>--</strong>
                                 <small>Awaiting assessment results</small>
                             </article>
-
                             <article className="learner-stat-card">
-                                <div className="learner-stat-icon orange">◎</div>
+                                <div className="learner-stat-icon orange">IND</div>
                                 <span>Independent Progress</span>
-                                <strong>—</strong>
+                                <strong>--</strong>
                                 <small>Awaiting No-AI assessments</small>
                             </article>
                         </div>
@@ -289,54 +242,41 @@ const LearnerDashboard = () => {
                         <div className="learner-section-heading">
                             <div>
                                 <h2>Choose your learning mode</h2>
-                                <p>
-                                    Practice with AI, then challenge yourself
-                                    independently.
-                                </p>
+                                <p>Practice with AI, then challenge yourself independently.</p>
                             </div>
                         </div>
 
                         <div className="learner-modes-grid">
                             <article className="learner-mode-card ai-mode">
-                                <div className="learner-mode-icon">✳</div>
-                                <span className="learner-mode-label">
-                                    LEARN WITH GUIDANCE
-                                </span>
+                                <div className="learner-mode-icon">AI</div>
+                                <span className="learner-mode-label">LEARN WITH GUIDANCE</span>
                                 <h3>AI-Assisted Learning</h3>
                                 <p>
-                                    Work on programming tasks, run code, and
-                                    use AI assistance to understand concepts
-                                    and debug problems.
+                                    Work on programming tasks, run code, and use AI assistance
+                                    to understand concepts and debug problems.
                                 </p>
-                                <button
-                                    onClick={() => navigate("/learning/tasks")}
-                                >
-                                    Browse learning tasks →
+                                <button onClick={() => navigate("/learning/tasks")}>
+                                    Browse learning tasks -&gt;
                                 </button>
                             </article>
 
                             <article className="learner-mode-card independent-mode">
-                                <div className="learner-mode-icon">{"</>"}</div>
-                                <span className="learner-mode-label">
-                                    TEST YOUR UNDERSTANDING
-                                </span>
+                                <div className="learner-mode-icon">CODE</div>
+                                <span className="learner-mode-label">TEST YOUR UNDERSTANDING</span>
                                 <h3>Independent Assessment</h3>
                                 <p>
-                                    Solve a matched programming problem
-                                    without AI assistance to evaluate your
-                                    independent understanding.
+                                    Solve a matched programming problem without AI assistance
+                                    to evaluate your independent understanding.
                                 </p>
-                                <button
-                                    onClick={() => navigate("/learning/tasks")}
-                                >
-                                    Choose a task first →
+                                <button onClick={() => navigate("/learning/tasks")}>
+                                    Choose a task first -&gt;
                                 </button>
                             </article>
                         </div>
                     </section>
 
                     <footer className="learner-footer">
-                        CodeLearn AI <span>·</span> Learn, practice, understand.
+                        CodeLearn AI <span>-</span> Learn, practice, understand.
                     </footer>
                 </div>
             </main>
