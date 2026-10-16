@@ -1,9 +1,9 @@
+require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
-require("dotenv").config();
 
 const learnerAuthRoutes = require("./routes/learnerAuthRoutes");
 const adminAuthRoutes = require("./routes/adminAuthRoutes");
