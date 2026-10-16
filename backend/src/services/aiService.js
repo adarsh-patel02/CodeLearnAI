@@ -1,15 +1,15 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { performance } = require("node:perf_hooks");
 
-const genAI = new GoogleGenerativeAI(
-    process.env.GEMINI_API_KEY
-);
-
-
+const apiKey = String(process.env.GEMINI_API_KEY || "").trim();
+const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
 
 const generateAIResponse = async (message, context = {}) => {
-    const { performance } = require("node:perf_hooks");
     const startTime = performance.now();
+
+    if (!apiKey) {
+        throw new Error("GEMINI_API_KEY is missing. Add it to backend/.env and restart the backend.");
+    }
 
     const {
         taskTitle = "",
@@ -43,7 +43,7 @@ ${code}
         process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
 
     const fallbackModelName =
-        process.env.GEMINI_FALLBACK_MODEL || "gemini-3.5-flash";
+        process.env.GEMINI_FALLBACK_MODEL || "gemini-3.6-flash";
 
     const sleep = (ms) =>
         new Promise(resolve => setTimeout(resolve, ms));
@@ -54,34 +54,22 @@ ${code}
             systemInstruction
         });
 
-        // Maximum three attempts for temporary service errors.
         for (let attempt = 0; attempt < 3; attempt++) {
             try {
-                console.log(
-                    `[AI] ${modelName}: attempt ${attempt + 1}/3`
-                );
-
+                console.log(`[AI] ${modelName}: attempt ${attempt + 1}/3`);
                 const result = await model.generateContent(message);
-
                 return result.response.text();
             } catch (error) {
                 const status = Number(error.status);
 
-                if (
-                    ![429, 503, 500, 504].includes(status) ||
-                    attempt === 2
-                ) {
+                if (![429, 503, 500, 504].includes(status) || attempt === 2) {
                     throw error;
                 }
 
-                // Wait 1 second, then 2 seconds before retrying.
                 const delay = 1000 * (2 ** attempt);
-
                 console.warn(
-                    `[AI] ${modelName} returned ${status}. ` +
-                    `Retrying in ${delay / 1000}s.`
+                    `[AI] ${modelName} returned ${status}. Retrying in ${delay / 1000}s.`
                 );
-
                 await sleep(delay);
             }
         }
@@ -90,13 +78,9 @@ ${code}
     try {
         try {
             const response = await generateWithRetry(primaryModelName);
-
             console.log(
-                `[AI] Success using primary model in ${
-                    ((performance.now() - startTime) / 1000).toFixed(2)
-                }s`
+                `[AI] Success using primary model in ${((performance.now() - startTime) / 1000).toFixed(2)}s`
             );
-
             return response;
         } catch (error) {
             const status = Number(error.status);
@@ -108,33 +92,21 @@ ${code}
                 throw error;
             }
 
-            console.warn(
-                `[AI] Primary model unavailable. Trying ${fallbackModelName}.`
-            );
-
+            console.warn(`[AI] Primary model unavailable. Trying ${fallbackModelName}.`);
             const response = await generateWithRetry(fallbackModelName);
 
             console.log(
-                `[AI] Success using fallback model in ${
-                    ((performance.now() - startTime) / 1000).toFixed(2)
-                }s`
+                `[AI] Success using fallback model in ${((performance.now() - startTime) / 1000).toFixed(2)}s`
             );
-
             return response;
         }
     } catch (error) {
         console.error(
-            `[AI] All attempts failed after ${
-                ((performance.now() - startTime) / 1000).toFixed(2)
-            }s. Status: ${error.status || "unknown"}`
+            `[AI] All attempts failed after ${((performance.now() - startTime) / 1000).toFixed(2)}s. Status: ${error.status || "unknown"}. ${error.message || ""}`
         );
-
         throw error;
     }
 };
-
-
-
 
 const generateProgrammingTasks = async ({
     topic,
@@ -142,6 +114,10 @@ const generateProgrammingTasks = async ({
     language,
     count
 }) => {
+    if (!apiKey) {
+        throw new Error("GEMINI_API_KEY is missing. Add it to backend/.env and restart the backend.");
+    }
+
     const model = genAI.getGenerativeModel({
         model: process.env.GEMINI_MODEL || "gemini-3.5-flash-lite",
         generationConfig: {
@@ -226,7 +202,6 @@ Rules:
             throw new Error("Generated task has invalid test cases.");
         }
 
-        // Ensure compatibility with the existing task format.
         task.difficulty = difficulty;
         task.language = language.toLowerCase();
         task.topic = topic.trim();
@@ -234,7 +209,6 @@ Rules:
 
     return tasks;
 };
-
 
 module.exports = {
     generateAIResponse,
