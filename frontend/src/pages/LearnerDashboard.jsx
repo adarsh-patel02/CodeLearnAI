@@ -1,11 +1,13 @@
-
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "../styles/learner-dashboard.css";
 
 const LearnerDashboard = () => {
     const navigate = useNavigate();
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [competency, setCompetency] = useState(null);
+    const [competencyLoading, setCompetencyLoading] = useState(true);
+    const [competencyError, setCompetencyError] = useState("");
 
     const learner = JSON.parse(
         localStorage.getItem("learner") || "null"
@@ -13,11 +15,49 @@ const LearnerDashboard = () => {
 
     const learnerName = learner?.name?.trim().split(/\s+/)[0] || "Learner";
 
+    useEffect(() => {
+        const token = localStorage.getItem("learnerToken");
+
+        if (!token) {
+            setCompetencyLoading(false);
+            setCompetencyError("Please sign in again to view competency.");
+            return;
+        }
+
+        fetch("/api/competency/me", {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+            .then(async (response) => {
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || "Unable to load competency.");
+                }
+
+                return data;
+            })
+            .then((data) => {
+                setCompetency(data.competency);
+                setCompetencyError("");
+            })
+            .catch((error) => {
+                console.error("Competency fetch failed:", error);
+                setCompetencyError(error.message || "Unable to load competency.");
+            })
+            .finally(() => setCompetencyLoading(false));
+    }, []);
+
     const handleLogout = () => {
         localStorage.removeItem("learnerToken");
         localStorage.removeItem("learner");
         navigate("/login/learner", { replace: true });
     };
+
+    const competencyScore = Number(competency?.score ?? 0);
+    const competencyLevel = competency?.level || "Not available";
+    const scoreAngle = Math.max(0, Math.min(100, competencyScore)) * 3.6;
 
     return (
         <div className="learner-dashboard">
@@ -136,6 +176,69 @@ const LearnerDashboard = () => {
                             </div>
                             <div className="learner-art-core">{"{ }"}</div>
                         </div>
+                    </section>
+
+                    <section className="learner-section">
+                        <div className="learner-section-heading">
+                            <div>
+                                <h2>Programming competency</h2>
+                                <p>
+                                    Your current competency estimate from AI-assisted coding evidence.
+                                </p>
+                            </div>
+                            <span className="learner-data-badge competency-live-badge">
+                                {competencyLoading ? "Calculating..." : "Live ML result"}
+                            </span>
+                        </div>
+
+                        {competencyLoading ? (
+                            <div className="learner-competency-card learner-competency-loading">
+                                <div className="competency-spinner" />
+                                <span>Calculating your competency...</span>
+                            </div>
+                        ) : competencyError ? (
+                            <div className="learner-competency-card learner-competency-error">
+                                <strong>Competency unavailable</strong>
+                                <span>{competencyError}</span>
+                            </div>
+                        ) : (
+                            <div className="learner-competency-card">
+                                <div
+                                    className="competency-score-ring"
+                                    style={{ "--competency-angle": `${scoreAngle}deg` }}
+                                >
+                                    <div className="competency-score-center">
+                                        <strong>{competencyScore.toFixed(2)}</strong>
+                                        <span>/ 100</span>
+                                    </div>
+                                </div>
+
+                                <div className="competency-summary">
+                                    <span className="competency-label">CURRENT LEVEL</span>
+                                    <h3>{competencyLevel}</h3>
+                                    <p>
+                                        Based on {competency.tasksEvaluated || 0} evaluated task{competency.tasksEvaluated === 1 ? "" : "s"}.
+                                    </p>
+                                </div>
+
+                                <div className="competency-task-breakdown">
+                                    <span className="competency-label">TASK PREDICTIONS</span>
+                                    {competency.taskPredictions?.length ? (
+                                        competency.taskPredictions.map((task, index) => (
+                                            <div className="competency-task-row" key={task.taskId}>
+                                                <span>Task {index + 1}</span>
+                                                <div className="competency-task-bar">
+                                                    <span style={{ width: `${Math.max(0, Math.min(100, task.score))}%` }} />
+                                                </div>
+                                                <strong>{Number(task.score).toFixed(2)}</strong>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <span className="competency-empty">No task predictions yet.</span>
+                                    )}
+                                </div>
+                            </div>
+                        )}
                     </section>
 
                     <section className="learner-section">
