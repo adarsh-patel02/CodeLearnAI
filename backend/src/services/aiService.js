@@ -1,30 +1,18 @@
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { GoogleGenAI } = require("@google/genai");
 const { performance } = require("node:perf_hooks");
 
 const apiKey = String(process.env.GEMINI_API_KEY || "").trim();
-const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
+const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
+const MODEL = "gemini-3.8-flash";
 
-const generateAIResponse = async (message, context = {}) => {
-    const startTime = performance.now();
-
-    if (!apiKey) {
-        throw new Error("GEMINI_API_KEY is missing. Add it to backend/.env and restart the backend.");
-    }
-
-    const {
-        taskTitle = "",
-        taskDescription = "",
-        code = ""
-    } = context;
-
-    const systemInstruction = `
+const buildSystemInstruction = ({ taskTitle = "", taskDescription = "", code = "" }) => `
 You are CodeLearn AI, an AI programming learning assistant.
 
-Help learners understand programming concepts, debug code,
-and solve programming problems.
+Help learners understand programming concepts, debug code, and solve programming problems.
 
+Rules:
 1. Prefer hints when guidance is requested.
-2. Provide complete, executable code when explicitly requested.
+2. Provide complete executable code when explicitly requested.
 3. Explain errors and their causes.
 4. Explain concepts in simple language.
 5. Keep responses educational and relevant.
@@ -39,70 +27,43 @@ Learner's current code:
 ${code}
 `;
 
-    const primaryModelName =
-        process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
+const generateAIResponse = async (message, context = {}) => {
+    const startTime = performance.now();
 
-    const fallbackModelName =
-        process.env.GEMINI_FALLBACK_MODEL || "gemini-3.6-flash";
+    if (!apiKey || !ai) {
+        throw new Error("GEMINI_API_KEY is missing. Add it to backend/.env and restart the backend.");
+    }
 
-    const sleep = (ms) =>
-        new Promise(resolve => setTimeout(resolve, ms));
-
-    const generateWithRetry = async (modelName) => {
-        const model = genAI.getGenerativeModel({
-            model: modelName,
-            systemInstruction
-        });
-
-        for (let attempt = 0; attempt < 3; attempt++) {
-            try {
-                console.log(`[AI] ${modelName}: attempt ${attempt + 1}/3`);
-                const result = await model.generateContent(message);
-                return result.response.text();
-            } catch (error) {
-                const status = Number(error.status);
-
-                if (![429, 503, 500, 504].includes(status) || attempt === 2) {
-                    throw error;
-                }
-
-                const delay = 1000 * (2 ** attempt);
-                console.warn(
-                    `[AI] ${modelName} returned ${status}. Retrying in ${delay / 1000}s.`
-                );
-                await sleep(delay);
-            }
-        }
-    };
+    if (!String(message || "").trim()) {
+        throw new Error("AI message is empty.");
+    }
 
     try {
-        try {
-            const response = await generateWithRetry(primaryModelName);
-            console.log(
-                `[AI] Success using primary model in ${((performance.now() - startTime) / 1000).toFixed(2)}s`
-            );
-            return response;
-        } catch (error) {
-            const status = Number(error.status);
+        console.log(`[AI] Generating response with ${MODEL}...`);
 
-            if (
-                ![429, 503, 500, 504].includes(status) ||
-                fallbackModelName === primaryModelName
-            ) {
-                throw error;
+        const response = await ai.models.generateContent({
+            model: MODEL,
+            contents: String(message),
+            config: {
+                systemInstruction: buildSystemInstruction(context)
             }
+        });
 
-            console.warn(`[AI] Primary model unavailable. Trying ${fallbackModelName}.`);
-            const response = await generateWithRetry(fallbackModelName);
+        const text = String(response.text || "").trim();
 
-            console.log(
-                `[AI] Success using fallback model in ${((performance.now() - startTime) / 1000).toFixed(2)}s`
-            );
-            return response;
+        if (!text) {
+            throw new Error("Gemini returned an empty response.");
         }
+
+        console.log(
+            `[AI] Success in ${((performance.now() - startTime) / 1000).toFixed(2)}s`
+        );
+
+        return text;
     } catch (error) {
         console.error(
-            `[AI] All attempts failed after ${((performance.now() - startTime) / 1000).toFixed(2)}s. Status: ${error.status || "unknown"}. ${error.message || ""}`
+            `[AI] Generation failed after ${((performance.now() - startTime) / 1000).toFixed(2)}s:`,
+            error?.message || error
         );
         throw error;
     }
@@ -114,16 +75,9 @@ const generateProgrammingTasks = async ({
     language,
     count
 }) => {
-    if (!apiKey) {
+    if (!apiKey || !ai) {
         throw new Error("GEMINI_API_KEY is missing. Add it to backend/.env and restart the backend.");
     }
-
-    const model = genAI.getGenerativeModel({
-        model: process.env.GEMINI_MODEL || "gemini-3.5-flash-lite",
-        generationConfig: {
-            responseMimeType: "application/json"
-        }
-    });
 
     const prompt = `
 Generate exactly ${count} original programming tasks.
@@ -134,7 +88,6 @@ Task requirements:
 - Language: ${language}
 
 Return only a valid JSON array. Each task MUST use these exact fields:
-
 {
   "title": "Task title",
   "description": "Complete problem statement",
@@ -145,27 +98,29 @@ Return only a valid JSON array. Each task MUST use these exact fields:
   "exampleInput": "Example input",
   "exampleOutput": "Expected output",
   "testCases": [
-    {
-      "input": "Test input",
-      "expectedOutput": "Expected output"
-    }
+    { "input": "Test input", "expectedOutput": "Expected output" }
   ]
 }
 
 Rules:
-1. Use the exact field names above.
-2. Generate exactly ${count} different tasks.
-3. Include at least 3 test cases per task.
-4. Include normal and edge cases.
-5. Ensure expected outputs are correct.
-6. Starter code must match the selected language.
-7. Do not include complete solutions in starterCode.
-8. Make descriptions clear and suitable for a coding practice page.
-9. Do not include Markdown fences or text outside the JSON array.
+1. Generate exactly ${count} different tasks.
+2. Include at least 3 test cases per task.
+3. Include normal and edge cases.
+4. Ensure expected outputs are correct.
+5. Starter code must match the selected language.
+6. Do not include complete solutions in starterCode.
+7. Do not include Markdown fences or text outside the JSON array.
 `;
 
-    const result = await model.generateContent(prompt);
-    const tasks = JSON.parse(result.response.text());
+    const response = await ai.models.generateContent({
+        model: MODEL,
+        contents: prompt,
+        config: {
+            responseMimeType: "application/json"
+        }
+    });
+
+    const tasks = JSON.parse(String(response.text || ""));
 
     if (!Array.isArray(tasks) || tasks.length !== Number(count)) {
         throw new Error("Gemini returned an invalid number of tasks.");
