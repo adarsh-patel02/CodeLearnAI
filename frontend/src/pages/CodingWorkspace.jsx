@@ -143,7 +143,7 @@ const CodingWorkspace = () => {
     }, [output]);
 
     const handleRunCode = () => {
-        if (!task || isRunning) return;
+        if (!task || isRunning || isSubmitting) return;
 
         const token = localStorage.getItem("learnerToken");
         const socket = socketRef.current;
@@ -319,7 +319,7 @@ const handleSubmitSolution = async () => {
                         <button
                             type="button"
                             onClick={handleRunCode}
-                            disabled={isRunning}
+                            disabled={isRunning || isSubmitting}
                         >
                             {isRunning ? "Running..." : "Run Code"}
                         </button>
@@ -393,7 +393,7 @@ const handleSubmitSolution = async () => {
                     {submissionResult.results?.map((result) => (
                         <li key={result.testCase}>
                             Test {result.testCase}:{" "}
-                            {result.passed ? "Passed" : "Failed"}
+                            {result.passed ? "Passed" : result.status === "RUNTIME_ERROR" ? "Runtime error" : "Failed (output mismatch)"}
                         </li>
                     ))}
                 </ul>

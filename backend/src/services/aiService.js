@@ -166,6 +166,8 @@ Return only a valid JSON array. Each task MUST use these exact fields:
   "language": "${language}",
   "topic": "${topic}",
   "starterCode": "Starter code for the learner",
+  "evaluationType": "STDIN or FUNCTION",
+  "functionName": "Function name for FUNCTION tasks, otherwise empty string",
   "exampleInput": "Example input",
   "exampleOutput": "Expected output",
   "testCases": [
@@ -185,7 +187,9 @@ Rules:
 6. Starter code must match the selected language.
 7. Do not include complete solutions in starterCode.
 8. Make descriptions clear and suitable for a coding practice page.
-9. Do not include Markdown fences or text outside the JSON array.
+9. Use evaluationType STDIN for complete programs that read input() and print results. Test input must be the exact stdin text, with actual newline characters between separate input() calls. Do not use labels such as n=5 or JSON lists unless the program explicitly parses them.
+10. Use evaluationType FUNCTION for tasks asking learners to implement and return from a named function. Set functionName to the exact starter function name. Test inputs and expected return values must be valid JSON: a single parameter receives the whole input value; multiple positional parameters receive an array, e.g. [2,3]. For zero arguments or ambiguous signatures use {"args": [], "kwargs": {}}. Use {"args": [[1,2],3]} for a list plus a scalar. Describe the exact input and output contract in the task.
+11. Do not include Markdown fences or text outside the JSON array.
 `;
 
     const result = await model.generateContent(prompt);
@@ -224,6 +228,12 @@ Rules:
             )
         ) {
             throw new Error("Generated task has invalid test cases.");
+        }
+
+        if (!["STDIN", "FUNCTION"].includes(task.evaluationType) ||
+            (task.evaluationType === "FUNCTION" &&
+                !/^[A-Za-z_][A-Za-z0-9_]*$/.test(task.functionName || ""))) {
+            throw new Error("Generated task has an invalid evaluation configuration.");
         }
 
         // Ensure compatibility with the existing task format.
